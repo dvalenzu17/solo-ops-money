@@ -1,0 +1,6 @@
+Fecha	Referencia	Transacción	Descripción	Débito	Crédito	Saldo total
+01/12/2025	0001	Transferencia	Cliente X pago		250.00	1250.00
+03/12/2025	0002	Compra	Tienda / Suscripción	29.99		1220.01
+05/12/2025	0003	Transferencia	Cliente Y pago		400.00	1620.01
+08/12/2025	0004	Compra	Supermercado	75.50		1544.51
+10/12/2025	0005	Cargo	Internet	45.00		1499.51
