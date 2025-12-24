@@ -6,54 +6,71 @@ import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
-  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [err, setErr] = useState('')
   const router = useRouter()
 
-  async function sendMagicLink() {
-    setError(null)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/app` }
-    })
-    if (error) setError(error.message)
-    else setSent(true)
-  }
+  async function sendLink(e) {
+    e.preventDefault()
+    setErr('')
+    setMsg('')
+    const v = email.trim()
+    if (!v) return
 
-  async function signOut() {
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
+    setLoading(true)
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const { error } = await supabase.auth.signInWithOtp({
+        email: v,
+        options: {
+          emailRedirectTo: `${origin}/app`
+        }
+      })
+      if (error) throw error
+      setMsg('Check your email for the sign-in link.')
+    } catch (e2) {
+      setErr(e2?.message || 'Could not send the email link.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <main style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 28, margin: 0 }}>Log in</h1>
-      <p style={{ opacity: 0.8, marginTop: 10 }}>Magic link. No passwords. Less drama.</p>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@domain.com"
-          style={{ padding: 12, borderRadius: 12, border: '1px solid #ddd', fontSize: 16 }}
-        />
-        <button
-          onClick={sendMagicLink}
-          style={{ padding: 12, borderRadius: 12, border: '1px solid #ddd', fontSize: 16, cursor: 'pointer' }}
-        >
-          Send magic link
-        </button>
-        <button
-          onClick={signOut}
-          style={{ padding: 12, borderRadius: 12, border: '1px solid #ddd', fontSize: 16, cursor: 'pointer', opacity: 0.85 }}
-        >
-          Sign out
-        </button>
+    <main className="container">
+      <div className="header">
+        <div className="brand">
+          <div className="logo">M</div>
+          <div>
+            <div className="h1">Log in</div>
+            <div className="p">We’ll email you a sign-in link. No passwords.</div>
+          </div>
+        </div>
+        <button className="btn secondary" onClick={() => router.push('/')}>Back</button>
       </div>
 
-      {sent ? <p style={{ marginTop: 14 }}>Check your email for the link.</p> : null}
-      {error ? <p style={{ marginTop: 14, color: '#b00020' }}>{error}</p> : null}
+      <div className="card">
+        <form onSubmit={sendLink} className="grid">
+          <input
+            className="input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            inputMode="email"
+            autoComplete="email"
+          />
+          <button className="btn" disabled={loading}>
+            {loading ? 'Sending…' : 'Send magic link'}
+          </button>
+        </form>
+
+        {msg ? <p style={{ marginTop: 12 }}>{msg}</p> : null}
+        {err ? <p className="error" style={{ marginTop: 12 }}>{err}</p> : null}
+
+        <p className="note" style={{ marginTop: 12 }}>
+          If it doesn’t arrive, check spam/promotions. Some inboxes are dramatic.
+        </p>
+      </div>
     </main>
   )
 }
